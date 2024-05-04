@@ -25,7 +25,10 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Integer> {
     @Modifying
     @Query(value = "update BoardEntity b set b.badCount = b.badCount + 1 where b.postId =: postId")
     void updateBadCountHit(@Param("postId") int postId);
-
+    // 신고 횟수 증가
+    @Modifying
+    @Query(value = "update BoardEntity b set b.reportCount = b.reportCount + 1 where b.postId =: postId")
+    void updateReportCountHit(@Param("postId") int postId);
     Page<BoardEntity> findAllByLocation_LocationId(int postId, Pageable pageable);
 
     // 해당 장소의 게시글 반환

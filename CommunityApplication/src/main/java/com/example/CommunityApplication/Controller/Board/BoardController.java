@@ -15,7 +15,7 @@ public class BoardController {
 
     // 게시글 생성, jwt 토큰 받는 코드 추가 - user가 회원이 맞는지 Authentication 서버에서 확인
     @PostMapping("user/post/save/{locationId}")
-    public ResponseEntity save(@PathVariable int locationId/*, @RequestPart(value = "dto", required = false) BoardDto dto,
+    public ResponseEntity save(@PathVariable int locationId/*, @RequestPart(value = "dto", required = true) BoardDto dto,
                                @RequestPart(value = "file", required = false) MultipartFile file*/) {
         return service.saveBoard(null, locationId, null);
     }

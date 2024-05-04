@@ -1,4 +1,4 @@
-package com.example.CommunityApplication.Entity.Board;
+package com.example.CommunityApplication.Entity.Review;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @NoArgsConstructor
-public class LogBoardCountEntity {
+public class LogReviewCountEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int Id;
@@ -18,16 +18,16 @@ public class LogBoardCountEntity {
     @CreationTimestamp
     private LocalDateTime createTime;
     @ManyToOne
-    @JoinColumn(name = "postId")
-    private BoardEntity boardEntity;
+    @JoinColumn(name = "reviewId")
+    private ReviewEntity reviewEntity;
     private int countCheck;
 
     //좋아요 or 싫어요 할때는 1을 추가
-    public static LogBoardCountEntity setCount(String userId, BoardEntity countEntity) {
-        LogBoardCountEntity entity = new LogBoardCountEntity();
+    public static LogReviewCountEntity setCount(String userId, ReviewEntity countEntity) {
+        LogReviewCountEntity entity = new LogReviewCountEntity();
         entity.setUserName(userId);
         entity.setCountCheck(1);
-        entity.setBoardEntity(countEntity);
+        entity.setReviewEntity(countEntity);
         return entity;
     }
 }

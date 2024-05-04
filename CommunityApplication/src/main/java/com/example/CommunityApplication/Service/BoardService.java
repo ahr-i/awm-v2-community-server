@@ -173,6 +173,8 @@ public class BoardService {
         boardRepository.updateBadCountHit(postId);
     }
 
+    public void reportCountPlus(int postId){boardRepository.updateReportCountHit(postId);}
+
     // 게시글 좋아요
     public ResponseEntity checkLogBoardLike(int postId){
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
@@ -237,6 +239,24 @@ public class BoardService {
 
     // 게시글 신고
     public ResponseEntity checkLogBoardReport(int postId){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
+        try {
+            // 게시글이 없는 경우
+            if (optionalBoardEntity.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
+            }
+            // 게시글은 존재하나 회원이 아닌 경우
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            if (userName == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
+            }
+
+            // 성공 시 실행
+            reportCountPlus(postId);
+            return ResponseEntity.status(HttpStatus.OK).body("게시글을 신고하였습니다.");
+        } catch (Exception e) {
+            log.info("Exception : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
