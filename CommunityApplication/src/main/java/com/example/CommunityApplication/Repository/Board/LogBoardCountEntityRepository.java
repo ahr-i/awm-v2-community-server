@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Transactional
 public interface LogBoardCountEntityRepository extends JpaRepository<LogBoardCountEntity, Integer> {
-    //Optional<LogBoardCountEntity> findByLogBoardEntity_IdAndCountCheckAndUserId(int Id, int countCheck, String userName);
+    //Optional<LogBoardCountEntity> findByBoardEntity_PostIdAndCountCheckAndUserName(int postId, String userName);
 
-    Optional<LogBoardCountEntity> findLogBoardCountEntityByBoardEntity_PostIdAndCountCheckAndUserName(int postId, int countCheck, String userName);
+    Optional<LogBoardCountEntity> findByBoardEntityPostIdAndUserName(int postId, String userName);
 }

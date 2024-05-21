@@ -37,7 +37,7 @@ public class BoardService {
     private final ApplicationProperties applicationProperties;
 
     // 게시글 저장
-    public ResponseEntity saveBoard(BoardDto dto, int locationId, MultipartFile file) {
+    public ResponseEntity saveBoard(BoardDto dto, int locationId, MultipartFile file, String jwtToken) {
         try {
             Optional<Location> locationEntity = locationRepository.findById(locationId);
             // 게시글을 등록할 장소가 존재하지 않는 경우
@@ -46,8 +46,7 @@ public class BoardService {
             }
             // Authentication 서버에서 회원이 맞는지 확인 요청
             // 회원이 아닌 경우
-            String testToken = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRuanN3bnMxOTkyIiwicHJvdmlkZXIiOiJGb3JtTG9naW4iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzE0NTM0NDY2LCJleHAiOjE3MTQ1Nzc2NjZ9.821ewha25klODAq4AkCfrAEkf3N1DyzYdppzG4yKeVA";
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), testToken);
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
@@ -72,31 +71,36 @@ public class BoardService {
         PageRequest createdDate = PageRequest.of(page, 5, Sort.by("createTime").descending());
         Page<BoardEntity> findBoard = boardRepository.findAllByLocation_LocationId(locationId, createdDate);
 
+        // 디버깅 및 로깅
+        System.out.println("findBoard size: " + findBoard.getSize());
+        System.out.println("findBoard content: " + findBoard.getContent());
+
         if (!findBoard.isEmpty()) {
             Page<BoardDto> responseBoardDto = BoardDto.PageToBoardPostDto(findBoard, commentRepository);
             return responseBoardDto;
         } else {
+            System.out.println("No BoardEntities found for locationId: " + locationId);
             return null;
         }
     }
 
     // 게시글 상세 내용 불러오기
-    public ResponseEntity findByBoardAndComment(int postId) {
+    public ResponseEntity<?> findByBoardAndComment(int postId) {
         try {
             // 게시글 조회
             Optional<BoardEntity> boardEntity = boardRepository.findById(postId);
 
             if (boardEntity.isPresent()) {
-                // 코멘트 조회, 여기서 자꾸 에러 발생함
-                List<CommentEntity> comment = commentRepository.findAllByEntity_postIdOrderByCreateTimeDesc(boardEntity.get().getPostId());
+                // 코멘트 조회
+                List<CommentEntity> comments = commentRepository.findAllByBoardEntityPostIdOrderByCreateTimeDesc(boardEntity.get().getPostId());
                 // 조회수 업데이트
                 updateHit(postId); // 조회수 + 1
                 // DTO 생성
                 BoardDto dto = BoardDto.DetailToBoardDto(boardEntity.get());
                 // 코멘트 수 조회
-                Long commentCount = commentRepository.countAllByEntity(boardEntity.get());
+                Long commentCount = commentRepository.countAllByBoardEntity(boardEntity.get());
                 // 응답 생성
-                Response response = new Response(dto, comment, commentCount);
+                Response response = new Response(dto, comments, commentCount);
                 return ResponseEntity.ok().body(response);
             } else {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("해당 게시글이 존재하지 않습니다.");
@@ -114,7 +118,7 @@ public class BoardService {
     }
 
     // 게시글 삭제
-    public ResponseEntity removeBoard(int postId) {
+    public ResponseEntity removeBoard(int postId, String jwtToken) {
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
 
         try {
@@ -124,7 +128,7 @@ public class BoardService {
             }
             // 게시글은 존재하나 해당 게시글의 작성자가 아니거나 회원이 아닌 경우
             String boardAuthorId = optionalBoardEntity.get().getUserName();
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null || !userName.equals(boardAuthorId)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("해당 게시글의 작성자가 아닙니다.");
             }
@@ -140,7 +144,7 @@ public class BoardService {
     }
 
     // 게시글 수정
-    public ResponseEntity updateBoard(BoardDto dto, MultipartFile file, int postId) {
+    public ResponseEntity updateBoard(BoardDto dto, MultipartFile file, int postId, String jwtToken) {
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
 
         try {
@@ -150,7 +154,7 @@ public class BoardService {
             }
             // 게시글은 존재하나 해당 게시글의 작성자가 아니거나 회원이 아닌 경우
             String boardAuthorId = optionalBoardEntity.get().getUserName();
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null || !userName.equals(boardAuthorId)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("해당 게시글의 작성자가 아닙니다.");
             }
@@ -176,7 +180,7 @@ public class BoardService {
     public void reportCountPlus(int postId){boardRepository.updateReportCountHit(postId);}
 
     // 게시글 좋아요
-    public ResponseEntity checkLogBoardLike(int postId){
+    public ResponseEntity checkLogBoardLike(int postId, String jwtToken){
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
         try {
             // 게시글이 없는 경우
@@ -184,14 +188,14 @@ public class BoardService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
             }
             // 게시글은 존재하나 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
             // 이미 좋아요를 누른 경우
             Optional<LogBoardCountEntity> optionalLogBoardCountEntity = logBoardCountEntityRepository
-                    .findLogBoardCountEntityByBoardEntity_PostIdAndCountCheckAndUserName(postId, 1, userName);
-            if (!optionalLogBoardCountEntity.isEmpty()){
+                    .findByBoardEntityPostIdAndUserName(postId, "exampleUser"/*userName*/);
+            if (optionalLogBoardCountEntity.isPresent()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 글에는 이미 좋아요를 눌렀습니다.");
             }
 
@@ -207,7 +211,7 @@ public class BoardService {
     }
 
     // 게시글 싫어요
-    public ResponseEntity checkLogBoardBad(int postId){
+    public ResponseEntity checkLogBoardBad(int postId, String jwtToken){
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
         try {
             // 게시글이 없는 경우
@@ -215,14 +219,14 @@ public class BoardService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
             }
             // 게시글은 존재하나 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
             // 이미 싫어요를 누른 경우
             Optional<LogBoardCountEntity> optionalLogBoardCountEntity = logBoardCountEntityRepository
-                    .findLogBoardCountEntityByBoardEntity_PostIdAndCountCheckAndUserName(postId, 1, userName);
-            if (!optionalLogBoardCountEntity.isEmpty()){
+                    .findByBoardEntityPostIdAndUserName(postId, userName);
+            if (optionalLogBoardCountEntity.isPresent()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 글에는 이미 싫어요를 눌렀습니다.");
             }
 
@@ -238,7 +242,7 @@ public class BoardService {
     }
 
     // 게시글 신고
-    public ResponseEntity checkLogBoardReport(int postId){
+    public ResponseEntity checkLogBoardReport(int postId, String jwtToken){
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
         try {
             // 게시글이 없는 경우
@@ -246,7 +250,7 @@ public class BoardService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
             }
             // 게시글은 존재하나 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }

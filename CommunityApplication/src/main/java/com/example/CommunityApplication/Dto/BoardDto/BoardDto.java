@@ -53,8 +53,9 @@ public class BoardDto {
     public static BoardEntity SaveToBoardEntity(BoardDto dto, Optional<Location> location, MultipartFile file) throws IOException {
         BoardEntity entity = mapper.map(dto, BoardEntity.class);
         entity.setLocation(location.get());
-        entity.setBoardHits(dto.getBoardHit());
+        entity.setBoardHits(0);
         entity.setLikeCount(0);
+        entity.setBadCount(0);
         entity.setReportCount(0);
 
         if (file == null || file.isEmpty())
@@ -81,7 +82,7 @@ public class BoardDto {
             dto.setPostId(entity.getPostId());
             dto.setBoardWriter(entity.getBoardWriter());
             dto.setCreateTime(entity.getCreateTime());
-            dto.setCommentCount(repository.countAllByEntity(entity)); // 이러면 게시글에 달린 댓글 카운트 되나?
+            dto.setCommentCount(repository.countAllByBoardEntity(entity));
             if (entity.getImageFile() == null) dto.setImage(null);
             else dto.setImage(entity.getImageFile());
             return dto;

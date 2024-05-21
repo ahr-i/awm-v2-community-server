@@ -40,7 +40,7 @@ public class CommentEntity {
     private LocalDateTime createTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postId", referencedColumnName = "postId")
+    @JoinColumn(name = "postId")
     @JsonBackReference
-    private BoardEntity entity;
+    private BoardEntity boardEntity;
 }

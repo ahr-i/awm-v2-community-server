@@ -24,16 +24,16 @@ public class CommentService {
     private final HttpRequest httpRequest;
     private final ApplicationProperties applicationProperties;
 
-    public ResponseEntity save(CommentDto commentDto, int postId) {
+    public ResponseEntity save(CommentDto commentDto, int postId, String jwtToken) {
         Optional<BoardEntity> optionalBoardEntity = boardRepository.findById(postId);
         try {
             // 코멘트를 등록할 장소가 존재하지 않는 경우
-            if (optionalBoardEntity.isEmpty()) {
+            if (false /*optionalBoardEntity.isEmpty()*/) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 게시글을 찾을 수 없습니다.");
             }
             // Authentication 서버에서 회원이 맞는지 확인 요청
             // 회원이 아닌 경우
-            String userId = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userId = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
@@ -48,7 +48,7 @@ public class CommentService {
         }
     }
 
-    public ResponseEntity removeComment(int commentId) {
+    public ResponseEntity removeComment(int commentId, String jwtToken) {
         Optional<CommentEntity> optionalCommentEntity = commentRepository.findById(commentId);
         try {
             // 삭제할 코멘트가 존재하지 않는 경우
@@ -57,7 +57,7 @@ public class CommentService {
             }
             // 댓글은 존재하나 해당 댓글의 작성자가 아니거나 회원이 아닌 경우
             String commentAuthorId = optionalCommentEntity.get().getUserName();
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null || !userName.equals(commentAuthorId)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("해당 댓글의 작성자가 아닙니다.");
             }

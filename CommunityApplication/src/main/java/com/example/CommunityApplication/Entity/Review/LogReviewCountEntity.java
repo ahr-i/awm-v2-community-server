@@ -1,5 +1,6 @@
 package com.example.CommunityApplication.Entity.Review;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class LogReviewCountEntity {
     private LocalDateTime createTime;
     @ManyToOne
     @JoinColumn(name = "reviewId")
+    @JsonBackReference
     private ReviewEntity reviewEntity;
     private int countCheck;
 

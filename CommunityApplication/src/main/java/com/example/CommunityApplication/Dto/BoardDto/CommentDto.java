@@ -22,7 +22,8 @@ public class CommentDto {
         entity.setCommentContent(dto.commentContent);
         entity.setReport(0);
         entity.setLikeCount(0);
-        entity.setEntity(boardEntity.get());
+        entity.setBadCount(0);
+        entity.setBoardEntity(boardEntity.get());
 
         return entity;
     }

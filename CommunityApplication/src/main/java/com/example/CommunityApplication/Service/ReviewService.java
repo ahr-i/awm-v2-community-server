@@ -29,7 +29,7 @@ public class ReviewService {
     private final HttpRequest httpRequest;
     private final ApplicationProperties applicationProperties;
 
-    public ResponseEntity saveReview(ReviewDto dto, int locationId){
+    public ResponseEntity saveReview(ReviewDto dto, int locationId, String jwtToken){
         try {
             Optional<Location> locationEntity = locationRepository.findById(locationId);
             // 게시글을 등록할 장소가 존재하지 않는 경우
@@ -38,8 +38,7 @@ public class ReviewService {
             }
             // Authentication 서버에서 회원이 맞는지 확인 요청
             // 회원이 아닌 경우
-            String testToken = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImRuanN3bnMxOTkyIiwicHJvdmlkZXIiOiJGb3JtTG9naW4iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzE0NTM0NDY2LCJleHAiOjE3MTQ1Nzc2NjZ9.821ewha25klODAq4AkCfrAEkf3N1DyzYdppzG4yKeVA";
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), testToken);
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
@@ -56,7 +55,7 @@ public class ReviewService {
 
     public ResponseEntity findReview(int locationId){
         try {
-            List<ReviewEntity> allBy = reviewRepository.findAllByLocation_LocationIdOrderByCreateTimeDesc(locationId);
+            List<ReviewEntity> allBy = reviewRepository.findReviewEntities(locationId);
 
             // 신고 횟수가 10 이상인 리뷰 삭제
             List<ReviewEntity> notDeletedReviews = allBy.stream()
@@ -71,7 +70,7 @@ public class ReviewService {
         }
     }
 
-    public ResponseEntity deleteReview(int reviewId){
+    public ResponseEntity deleteReview(int reviewId, String jwtToken){
         Optional<ReviewEntity> optionalReviewEntity = reviewRepository.findById(reviewId);
 
         try {
@@ -81,7 +80,7 @@ public class ReviewService {
             }
             // 리뷰는 존재하나 해당 리뷰의 작성자가 아니거나 회원이 아닌 경우
             String reviewAuthorId = optionalReviewEntity.get().getUserName();
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null || !userName.equals(reviewAuthorId)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("해당 리뷰의 작성자가 아닙니다.");
             }
@@ -106,7 +105,7 @@ public class ReviewService {
 
     public void reportCountPlus(int reviewId) {reviewRepository.updateReportCountHit(reviewId);}
 
-    public ResponseEntity checkLogReviewLike(int reviewId){
+    public ResponseEntity checkLogReviewLike(int reviewId, String jwtToken){
         Optional<ReviewEntity> optionalReviewEntity = reviewRepository.findById(reviewId);
         try {
             // 리뷰가 없는 경우
@@ -114,14 +113,14 @@ public class ReviewService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
             }
             // 리뷰는 존재하나 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
             // 이미 좋아요를 누른 경우
             Optional<LogReviewCountEntity> optionalLogReviewCountEntity = logReviewCountRepository
-                    .findLogReviewCountEntityByReviewEntity_ReviewIdAndCountCheckAndUserName(reviewId, 1, userName);
-            if (!optionalLogReviewCountEntity.isEmpty()){
+                    .findByReviewEntityReviewIdAndUserName(reviewId, "test");
+            if (optionalLogReviewCountEntity.isPresent()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 글에는 이미 좋아요를 눌렀습니다.");
             }
 
@@ -136,7 +135,7 @@ public class ReviewService {
         }
     }
 
-    public ResponseEntity checkLogReviewBad(int reviewId){
+    public ResponseEntity checkLogReviewBad(int reviewId, String jwtToken){
         Optional<ReviewEntity> optionalReviewEntity = reviewRepository.findById(reviewId);
         try {
             // 리뷰가 없는 경우
@@ -144,13 +143,13 @@ public class ReviewService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
             }
             // 리뷰는 존재하나 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }
             // 이미 싫어요를 누른 경우
             Optional<LogReviewCountEntity> optionalLogReviewCountEntity = logReviewCountRepository
-                    .findLogReviewCountEntityByReviewEntity_ReviewIdAndCountCheckAndUserName(reviewId, 1, userName);
+                    .findByReviewEntityReviewIdAndUserName(reviewId, userName);
             if (!optionalLogReviewCountEntity.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 글에는 이미 싫어요를 눌렀습니다.");
             }
@@ -166,7 +165,7 @@ public class ReviewService {
         }
     }
 
-    public ResponseEntity checkLogReviewReport(int reviewId){
+    public ResponseEntity checkLogReviewReport(int reviewId, String jwtToken){
         Optional<ReviewEntity> optionalReviewEntity = reviewRepository.findById(reviewId);
         try {
             // 리뷰가 없는 경우
@@ -174,7 +173,7 @@ public class ReviewService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제된 글이거나 찾을 수 없습니다.");
             }
             // 리뷰는 존재하나 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), "사용자 JWT 토큰");
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
             if (userName == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
             }

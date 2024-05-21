@@ -50,11 +50,15 @@ public class BoardEntity {
     @Lob
     private byte[] imageFile;
 
-    @ManyToOne
-    @JoinColumn(name = "location_id")
-    public Location location;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "locationId")
+    private Location location;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "entity", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "boardEntity", cascade = CascadeType.REMOVE, orphanRemoval = true)
     List<CommentEntity> entityList = new ArrayList<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "boardEntity", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    List<LogBoardCountEntity> logBoardCountEntities = new ArrayList<>();
 }

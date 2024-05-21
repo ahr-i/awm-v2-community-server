@@ -1,11 +1,15 @@
 package com.example.CommunityApplication.Entity.Review;
 
 import com.example.CommunityApplication.Entity.Location.Location;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Table(name = "review_table")
@@ -14,12 +18,12 @@ public class ReviewEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int reviewId;
-    // 작성자 닉네임
-    @Column(length = 20)
-    private String boardWriter;
     // 작성자 ID
     @Column
     private String userName;
+    // 작성자 닉네임
+    @Column
+    private String reviewWriter;
     // 내용
     @Column
     private String boardContent;
@@ -37,6 +41,11 @@ public class ReviewEntity {
     private LocalDateTime createTime;
 
     @ManyToOne
-    @JoinColumn(name = "location_id")
-    public Location location;
+    @JoinColumn(name = "locationId")
+    @JsonBackReference
+    private Location location;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "reviewEntity", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LogReviewCountEntity> logReviewCountEntities = new ArrayList<>();
 }
