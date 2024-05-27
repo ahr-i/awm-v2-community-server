@@ -45,10 +45,9 @@ public class BoardEntity {
     // 생성시간
     @CreationTimestamp
     private LocalDateTime createTime;
-    // 이미지 파일
-    @Column(columnDefinition = "LONGBLOB")
-    @Lob
-    private byte[] imageFile;
+    // 이미지 경로
+    @Column
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "locationId")

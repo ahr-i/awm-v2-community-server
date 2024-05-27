@@ -3,7 +3,6 @@ package com.example.CommunityApplication.Controller.Board;
 import com.example.CommunityApplication.Dto.BoardDto.BoardDto;
 import com.example.CommunityApplication.Service.BoardService;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,7 @@
 package com.example.CommunityApplication.Service;
 
 import com.example.CommunityApplication.ApplicationProperties;
+import com.example.CommunityApplication.Config.S3Config;
 import com.example.CommunityApplication.Dto.BoardDto.BoardDto;
 import com.example.CommunityApplication.Dto.Response;
 import com.example.CommunityApplication.Entity.Board.BoardEntity;
@@ -21,7 +22,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +35,7 @@ public class BoardService {
     private final LogBoardCountEntityRepository logBoardCountEntityRepository;
     private final HttpRequest httpRequest;
     private final ApplicationProperties applicationProperties;
+    private final S3Service s3Service;
 
     // 게시글 저장
     public ResponseEntity saveBoard(BoardDto dto, int locationId, MultipartFile file, String jwtToken) {
@@ -46,13 +47,16 @@ public class BoardService {
             }
             // Authentication 서버에서 회원이 맞는지 확인 요청
             // 회원이 아닌 경우
-            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
-            if (userName == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
-            }
+//            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
+//            if (userName == null) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
+//            }
 
             // 성공 시 실행
-            BoardEntity boardEntity = BoardDto.SaveToBoardEntity(dto, locationEntity, file);
+            // 이미지 경로 반환
+            String imageUrl = s3Service.upload(file);
+
+            BoardEntity boardEntity = BoardDto.SaveToBoardEntity(dto, locationEntity, imageUrl);
             boardRepository.save(boardEntity);
             return ResponseEntity.ok().body("등록이 완료 되었습니다.");
         } catch (Exception e) {
@@ -160,7 +164,9 @@ public class BoardService {
             }
 
             // 성공 시 실행
-            BoardEntity updateBoard = BoardDto.updatePost(dto, optionalBoardEntity.get(), file);
+            // 이미지 경로 반환
+            String imageUrl = s3Service.upload(file);
+            BoardEntity updateBoard = BoardDto.updatePost(dto, optionalBoardEntity.get(), imageUrl);
             boardRepository.save(updateBoard); // 이거 궁금
             return ResponseEntity.status(HttpStatus.OK).body("게시글이 정상적으로 수정되었습니다.");
         } catch (Exception e) {

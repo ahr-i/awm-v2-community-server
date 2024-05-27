@@ -43,25 +43,21 @@ public class BoardDto {
     // 신고횟수
     private int reportCount;
     // 이미지 파일
-    private byte[] image;
+    private String imageUrl;
     // 게시글의 댓글 수
     private long commentCount;
 
     private static ModelMapper mapper = new ModelMapper();
 
     // 게시글 저장을 위한 BoardEntity객체 반환, BoardDto -> BoardEntity
-    public static BoardEntity SaveToBoardEntity(BoardDto dto, Optional<Location> location, MultipartFile file) throws IOException {
+    public static BoardEntity SaveToBoardEntity(BoardDto dto, Optional<Location> location, String imageUrl) throws IOException {
         BoardEntity entity = mapper.map(dto, BoardEntity.class);
         entity.setLocation(location.get());
         entity.setBoardHits(0);
         entity.setLikeCount(0);
         entity.setBadCount(0);
         entity.setReportCount(0);
-
-        if (file == null || file.isEmpty())
-            entity.setImageFile(null);
-        else
-            entity.setImageFile(file.getBytes());
+        entity.setImageUrl(imageUrl);
 
         return entity;
     }
@@ -83,18 +79,16 @@ public class BoardDto {
             dto.setBoardWriter(entity.getBoardWriter());
             dto.setCreateTime(entity.getCreateTime());
             dto.setCommentCount(repository.countAllByBoardEntity(entity));
-            if (entity.getImageFile() == null) dto.setImage(null);
-            else dto.setImage(entity.getImageFile());
+            dto.setImageUrl(entity.getImageUrl());
             return dto;
         });
     }
 
     // 게시글 수정
-    public static BoardEntity updatePost(BoardDto dto, BoardEntity entity, MultipartFile file) throws IOException {
+    public static BoardEntity updatePost(BoardDto dto, BoardEntity entity, String imageUrl) throws IOException {
         entity.setBoardTitle(dto.getBoardTitle());
         entity.setBoardContent(dto.getBoardContent());
-        if (file == null) entity.setImageFile(null);
-        else entity.setImageFile(file.getBytes());
+        entity.setImageUrl(imageUrl);
         return entity;
     }
 }
