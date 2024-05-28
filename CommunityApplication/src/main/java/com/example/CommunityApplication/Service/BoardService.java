@@ -47,10 +47,10 @@ public class BoardService {
             }
             // Authentication 서버에서 회원이 맞는지 확인 요청
             // 회원이 아닌 경우
-//            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
-//            if (userName == null) {
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
-//            }
+            String userName = httpRequest.sendGetRequest(applicationProperties.getAuthServerUrl(), jwtToken);
+            if (userName == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원이 아닙니다.");
+            }
 
             // 성공 시 실행
             // 이미지 경로 반환
