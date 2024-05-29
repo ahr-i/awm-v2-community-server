@@ -24,7 +24,6 @@ public class BoardController {
     private final AuthenticationCommunicator authentication;
 
     @PostMapping("user/board/save/{locationId}")
-
     public ResponseEntity save(@PathVariable int locationId, @RequestPart("dto") BoardDto dto,
                                @RequestPart(value = "file" , required = false) MultipartFile file, @RequestHeader("Authorization") String jwt){
         AuthDto user = authentication.authentication(jwt);
