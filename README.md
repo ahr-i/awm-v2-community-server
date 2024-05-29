@@ -1,9 +1,8 @@
 # Capstone Design Project / Any Where Map
-This is the map-specific repository for AWM v2.
+This is the repository for community features related to AWM v2.
 
-## 0. Introduction to Location Manager
-Provides functionality for viewing information about a venue, registering, modifying, etc.  
-For more information about the API, DB, and more, see the documentation in the '/doc' folder.
+## 0. Introduction to Community Server
+Offers a community where users can write, view, and modify posts.
 
 ## 1. Repository Classification
 |Repository|Description|URL|
@@ -15,4 +14,3 @@ In the meta repository, see the list of 'Repository Classifications' in item #1.
 
 ## 2. Architecture
 ![msa_architecture](./doc/file/image/readme_2.png)
-![msa_service](./doc/file/image/readme_2_1.png)
