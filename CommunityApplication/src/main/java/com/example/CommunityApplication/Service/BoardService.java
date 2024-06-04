@@ -54,7 +54,10 @@ public class BoardService {
 
             // 성공 시 실행
             // 이미지 경로 반환
-            String imageUrl = s3Service.upload(file);
+            String imageUrl;
+            if (file == null || file.isEmpty())
+                imageUrl = null;
+            else imageUrl = s3Service.upload(file);
 
             BoardEntity boardEntity = BoardDto.SaveToBoardEntity(dto, locationEntity, imageUrl);
             boardRepository.save(boardEntity);
