@@ -85,6 +85,8 @@ public class BoardService {
 
         if (byId.isPresent()) {
             if (userId.equals(byId.get().getUserId())) {
+                repository.delete(byId.get());
+
                 return ResponseEntity.ok().body("Deletion is complete.");
             } else return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User does not match.");
         } else return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The post has been deleted or the path does not exist.");
