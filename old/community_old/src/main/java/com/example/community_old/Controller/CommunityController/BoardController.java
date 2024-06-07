@@ -1,7 +1,7 @@
 package com.example.community_old.Controller.CommunityController;
 
-import com.example.community_old.Communicator.AuthDto;
-import com.example.community_old.Communicator.AuthenticationCommunicator;
+import com.example.community_old.Communicator.Authentication.AuthDto;
+import com.example.community_old.Communicator.Authentication.AuthenticationCommunicator;
 import com.example.community_old.Dto.CommunityDto.BoardDto.BoardDto;
 import com.example.community_old.Dto.CommunityDto.BoardDto.UserLogDto;
 import com.example.community_old.JpaClass.CommunityTable.BoardEntity;
@@ -81,6 +81,7 @@ public class BoardController {
         }
     }
 
+    /* Alarm */
     @PostMapping("user/log/save/{locationId}")
     public ResponseEntity logUserSave(@RequestBody UserLogDto dto, @PathVariable int locationId, @RequestHeader("Authorization") String jwt) {
         AuthDto user = authentication.authentication(jwt);

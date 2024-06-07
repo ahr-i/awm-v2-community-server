@@ -1,5 +1,6 @@
 package com.example.community_old.Service;
 
+import com.example.community_old.Communicator.Alarm.AlarmCommunicator;
 import com.example.community_old.Dto.CommunityDto.BoardDto.BoardDto;
 import com.example.community_old.Dto.CommunityDto.BoardDto.UserLogDto;
 import com.example.community_old.Dto.CommunityDto.Response;
@@ -38,6 +39,8 @@ public class BoardService {
     private final LocationRepository locationRepository;
     private final UserPostRepository logBoardRepository;
     private final LogBoardCountEntityRepository logBoardCountEntityRepository;
+    private final AlarmCommunicator alarmComm;
+    private final LocationRepository locationRepository;
 
     public Optional<BoardEntity> findBoard(int postId){
         Optional<BoardEntity> byId = repository.findById(postId);
@@ -131,6 +134,11 @@ public class BoardService {
 
         if (byId.isPresent()) {
             logBoardRepository.save(UserLogDto.TransferUserEntity(dto, byId, userId, nickName));
+
+            // Alarm
+            Optional<Location> locationList = locationRepository.findById(locationId);
+            alarmComm.alarm(locationId, locationList.get().getLatitude(), locationList.get().getLongitude());
+
             return ResponseEntity.ok().body("Registration is complete.");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cannot register the post.");

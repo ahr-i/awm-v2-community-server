@@ -1,4 +1,4 @@
-package com.example.community_old.Communicator;
+package com.example.community_old.Communicator.Authentication;
 
 import jakarta.persistence.GeneratedValue;
 import lombok.Data;

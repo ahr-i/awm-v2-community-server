@@ -1,7 +1,7 @@
 package com.example.community_old.Controller.CommunityController;
 
-import com.example.community_old.Communicator.AuthDto;
-import com.example.community_old.Communicator.AuthenticationCommunicator;
+import com.example.community_old.Communicator.Authentication.AuthDto;
+import com.example.community_old.Communicator.Authentication.AuthenticationCommunicator;
 import com.example.community_old.Dto.CommunityDto.BoardDto.CommentDto;
 import com.example.community_old.Service.CommentService;
 import lombok.RequiredArgsConstructor;
