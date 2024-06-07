@@ -33,9 +33,9 @@ public class AlarmCommunicator {
 
         // Create request body
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("location_id", locationId);
-        requestBody.put("latitude", latitude);
-        requestBody.put("longitude", longitude);
+        requestBody.put("location_id", String.valueOf(locationId));
+        requestBody.put("latitude", String.valueOf(latitude));
+        requestBody.put("longitude", String.valueOf(longitude));
 
         // Convert request body to JSON
         ObjectMapper objectMapper = new ObjectMapper();
