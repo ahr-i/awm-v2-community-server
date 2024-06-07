@@ -40,7 +40,6 @@ public class BoardService {
     private final UserPostRepository logBoardRepository;
     private final LogBoardCountEntityRepository logBoardCountEntityRepository;
     private final AlarmCommunicator alarmComm;
-    private final LocationRepository locationRepository;
 
     public Optional<BoardEntity> findBoard(int postId){
         Optional<BoardEntity> byId = repository.findById(postId);
